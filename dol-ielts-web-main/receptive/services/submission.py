@@ -2,13 +2,14 @@
 Submission Service dùng chung cho cả Reading và Listening theo UC-REA-03 và UC-LIS-03.
 Thực hiện lưu Attempt và Answer trong một Atomic Transaction kèm Snapshot dữ liệu.
 Hỗ trợ Idempotent qua submission_key (UUID v4) chống tạo lượt trùng khi gửi lặp.
+Cập nhật trạng thái ExerciseProgress để theo dõi tiến độ luyện tập.
 """
 
 import uuid
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from receptive.models import Attempt, Answer, Exercise
+from receptive.models import Attempt, Answer, Exercise, ExerciseProgress
 from receptive.services.grading import grade_exercise_submission
 
 
@@ -23,6 +24,8 @@ def build_exercise_snapshot(exercise: Exercise) -> dict:
         "skill": exercise.skill,
         "passage": exercise.passage,
         "audio_file": exercise.audio_file.url if exercise.audio_file else None,
+        "time_limit_minutes": exercise.time_limit_minutes,
+        "transcript": exercise.transcript,
     }
 
 
@@ -44,6 +47,7 @@ def build_question_snapshot(question) -> dict:
         "question_type": question.question_type,
         "correct_answers": question.correct_answers,
         "explanation": question.explanation,
+        "evidence_quote": getattr(question, "evidence_quote", ""),
         "order_no": question.order_no,
         "options": options_data,
     }
@@ -55,6 +59,8 @@ def submit_receptive_exercise(
     answers_dict: dict,
     started_at=None,
     submission_key=None,
+    mode="PRACTICE",
+    time_spent_seconds=0,
 ) -> tuple[Attempt, bool]:
     """Nộp bài và chấm điểm một Exercise.
     
@@ -64,6 +70,8 @@ def submit_receptive_exercise(
         answers_dict: dict mapping str(question_id) -> user_answer
         started_at: datetime thời điểm bắt đầu làm bài (nếu None sẽ lấy submitted_at)
         submission_key: UUIDv4 hoặc chuỗi UUID để chống gửi lặp. Nếu None sẽ tự sinh.
+        mode: "PRACTICE" hoặc "EXAM"
+        time_spent_seconds: tổng số giây làm bài thực tế
 
     Returns:
         (attempt, created): tuple đối tượng Attempt và boolean created.
@@ -97,8 +105,10 @@ def submit_receptive_exercise(
             user=user,
             exercise=exercise,
             exercise_snapshot=build_exercise_snapshot(exercise),
+            mode=mode if mode in ["PRACTICE", "EXAM"] else "PRACTICE",
             total_questions=total_questions,
             correct_answers=correct_count,
+            time_spent_seconds=max(0, int(time_spent_seconds or 0)),
             started_at=started_at,
             submitted_at=submitted_at,
         )
@@ -117,5 +127,19 @@ def submit_receptive_exercise(
             )
 
         Answer.objects.bulk_create(answer_objs)
+
+        # Cập nhật hoặc tạo ExerciseProgress đánh dấu hoàn thành
+        progress, _ = ExerciseProgress.objects.get_or_create(
+            user=user,
+            exercise=exercise,
+            defaults={"mode": mode, "started_at": started_at},
+        )
+        progress.mode = mode
+        progress.answers = answers_dict
+        progress.is_completed = True
+        progress.last_attempt = attempt
+        progress.time_spent_seconds = max(0, int(time_spent_seconds or 0))
+        progress.time_left_seconds = 0
+        progress.save()
 
     return attempt, True

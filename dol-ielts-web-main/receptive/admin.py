@@ -1,5 +1,5 @@
 from django.contrib import admin
-from receptive.models import Exercise, Question, Option, Attempt, Answer
+from receptive.models import Exercise, Question, Option, Attempt, Answer, ExerciseProgress
 
 
 class OptionInline(admin.TabularInline):
@@ -60,3 +60,11 @@ class AnswerAdmin(admin.ModelAdmin):
     list_filter = ("is_correct",)
     search_fields = ("user_answer", "attempt__user__username")
     readonly_fields = ("attempt", "question", "question_snapshot", "user_answer", "is_correct")
+
+
+@admin.register(ExerciseProgress)
+class ExerciseProgressAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "exercise", "mode", "is_completed", "updated_at")
+    list_filter = ("mode", "is_completed", "exercise__skill")
+    search_fields = ("user__username", "exercise__title")
+

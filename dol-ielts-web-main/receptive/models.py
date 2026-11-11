@@ -30,6 +30,8 @@ class Exercise(models.Model):
     passage = models.TextField(null=True, blank=True)
     # Django FileField lưu đường dẫn dưới dạng VARCHAR(500) trong PostgreSQL.
     audio_file = models.FileField(upload_to="listening/", max_length=500, null=True, blank=True)
+    time_limit_minutes = models.PositiveIntegerField(default=20, help_text="Thời gian làm bài gợi ý (phút)")
+    transcript = models.TextField(null=True, blank=True, help_text="Nội dung lời thoại audio (Listening)")
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.HIDDEN)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -67,6 +69,7 @@ class Question(models.Model):
     question_type = models.CharField(max_length=30, choices=Type.choices)
     correct_answers = models.JSONField(default=list)  # PostgreSQL: JSONB
     explanation = models.TextField(blank=True)
+    evidence_quote = models.TextField(blank=True, default="", help_text="Đoạn văn trích dẫn làm bằng chứng đáp án")
     order_no = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.HIDDEN)
 
@@ -99,13 +102,19 @@ class Option(models.Model):
 
 
 class Attempt(models.Model):
+    class Mode(models.TextChoices):
+        PRACTICE = "PRACTICE", "Luyện tập"
+        EXAM = "EXAM", "Thi thử"
+
     id = models.BigAutoField(primary_key=True)
     submission_key = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="receptive_attempts")
     exercise = models.ForeignKey(Exercise, on_delete=models.PROTECT, related_name="attempts")
     exercise_snapshot = models.JSONField(default=dict)
+    mode = models.CharField(max_length=20, choices=Mode.choices, default=Mode.PRACTICE)
     total_questions = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     correct_answers = models.PositiveIntegerField()
+    time_spent_seconds = models.PositiveIntegerField(default=0, help_text="Thời gian làm bài thực tế tính bằng giây")
     started_at = models.DateTimeField()
     # Lượt Attempt chỉ được tạo khi nộp bài; không tạo ở bước bắt đầu.
     submitted_at = models.DateTimeField(default=timezone.now)
@@ -149,3 +158,33 @@ class Answer(models.Model):
 
     class Meta:
         db_table = "reading_listening_answer"
+
+
+class ExerciseProgress(models.Model):
+    """Lưu tiến độ làm bài dở dang, autosave, highlights, notes và review flags của học viên."""
+    class Mode(models.TextChoices):
+        PRACTICE = "PRACTICE", "Luyện tập"
+        EXAM = "EXAM", "Thi thử"
+
+    id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="receptive_progresses")
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE, related_name="progresses")
+    mode = models.CharField(max_length=20, choices=Mode.choices, default=Mode.PRACTICE)
+    answers = models.JSONField(default=dict, blank=True)
+    review_flags = models.JSONField(default=list, blank=True)
+    highlights = models.JSONField(default=list, blank=True)
+    font_size = models.PositiveIntegerField(default=16)
+    time_left_seconds = models.IntegerField(null=True, blank=True)
+    time_spent_seconds = models.PositiveIntegerField(default=0)
+    started_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_completed = models.BooleanField(default=False)
+    last_attempt = models.ForeignKey(Attempt, on_delete=models.SET_NULL, null=True, blank=True, related_name="progress_record")
+
+    def __str__(self):
+        return f"Progress User {self.user_id} - Exercise {self.exercise_id} ({self.mode})"
+
+    class Meta:
+        db_table = "reading_listening_progress"
+        unique_together = [("user", "exercise")]
+

@@ -2,6 +2,131 @@
 
 {% block title %}Luyện tập Reading - DOL IELTS Đình Lực{% endblock %}
 
+{% block extra_head %}
+<style>
+    .filter-bar {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 28px;
+        box-shadow: var(--shadow-sm);
+    }
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+        gap: 12px;
+        align-items: center;
+    }
+    @media (max-width: 992px) {
+        .filter-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    @media (max-width: 600px) {
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .filter-input {
+        width: 100%;
+        padding: 10px 14px 10px 38px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .filter-input:focus {
+        border-color: var(--primary);
+    }
+    .filter-select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        background: #ffffff;
+        color: #334155;
+        outline: none;
+        cursor: pointer;
+    }
+    .exercise-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .exercise-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: #cbd5e1;
+    }
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+    .btn-exam {
+        background: #14263f;
+        color: #ffffff;
+        border: 1px solid #14263f;
+        font-size: 13px;
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.2s;
+    }
+    .btn-exam:hover {
+        background: #0f1c2e;
+        color: #ffffff;
+    }
+    .btn-practice {
+        background: #fff5f5;
+        color: var(--primary);
+        border: 1px solid #fecaca;
+        font-size: 13px;
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-practice:hover {
+        background: var(--primary);
+        color: #ffffff;
+        border-color: var(--primary);
+    }
+    .btn-resume {
+        background: #f59e0b;
+        color: #ffffff;
+        border: 1px solid #d97706;
+        font-size: 13px;
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-resume:hover {
+        background: #d97706;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="breadcrumb">
     <a href="/">Trang chủ</a>
@@ -9,80 +134,148 @@
     <span>Reading</span>
 </div>
 
-<div style="margin-bottom: 28px;">
-    <h1 style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">Luyện tập Reading</h1>
-    <p style="color: #64748b; font-size: 15px;">Chọn bài đọc phù hợp và bắt đầu luyện tập</p>
+<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+    <div>
+        <h1 style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">Luyện tập Reading</h1>
+        <p style="color: #64748b; font-size: 15px;">Hệ thống bài thi đọc IELTS chuẩn hóa học thuật, hỗ trợ Luyện tập và Thi thử mô phỏng máy tính.</p>
+    </div>
 </div>
 
-<!-- Bộ lọc, tìm kiếm và sắp xếp (A1, A2, A3) -->
-<form method="GET" action="{% url 'reading:exercise_list' %}" style="display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 260px; position: relative;">
-        <input type="text" name="q" value="{{ query }}" placeholder="Tìm kiếm bài Reading..." 
-               style="width: 100%; padding: 12px 16px 12px 42px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px; outline: none; background: #fff;">
-        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 16px;">🔍</span>
+<!-- Bộ lọc nâng cao -->
+<form method="GET" action="{% url 'reading:exercise_list' %}" class="filter-bar">
+    <div class="filter-grid">
+        <!-- Tìm kiếm từ khóa -->
+        <div style="position: relative;">
+            <input type="text" name="q" value="{{ query }}" placeholder="Tìm kiếm bài đọc, chủ đề..." class="filter-input">
+            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 15px;">🔍</span>
+        </div>
+
+        <!-- Trình độ -->
+        <select name="level" class="filter-select">
+            <option value="">Tất cả trình độ</option>
+            <option value="BEGINNER" {% if level_filter == 'BEGINNER' %}selected{% endif %}>Beginner</option>
+            <option value="INTERMEDIATE" {% if level_filter == 'INTERMEDIATE' %}selected{% endif %}>Intermediate</option>
+            <option value="ADVANCED" {% if level_filter == 'ADVANCED' %}selected{% endif %}>Advanced</option>
+        </select>
+
+        <!-- Dạng câu hỏi -->
+        <select name="qtype" class="filter-select">
+            <option value="">Tất cả dạng bài</option>
+            <option value="MCQ" {% if qtype_filter == 'MCQ' %}selected{% endif %}>Multiple Choice</option>
+            <option value="TFNG" {% if qtype_filter == 'TFNG' %}selected{% endif %}>True/False/Not Given</option>
+            <option value="YNNG" {% if qtype_filter == 'YNNG' %}selected{% endif %}>Yes/No/Not Given</option>
+            <option value="SHORT_TEXT" {% if qtype_filter == 'SHORT_TEXT' %}selected{% endif %}>Completion (Điền từ)</option>
+            <option value="MATCHING" {% if qtype_filter == 'MATCHING' %}selected{% endif %}>Matching (Nối thông tin)</option>
+        </select>
+
+        <!-- Trạng thái -->
+        <select name="status" class="filter-select">
+            <option value="">Tất cả trạng thái</option>
+            <option value="NOT_STARTED" {% if status_filter == 'NOT_STARTED' %}selected{% endif %}>Chưa làm</option>
+            <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>Đang làm dở</option>
+            <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>Đã hoàn thành</option>
+        </select>
+
+        <!-- Sắp xếp -->
+        <select name="sort" class="filter-select">
+            <option value="newest" {% if sort_option == 'newest' %}selected{% endif %}>Mới nhất</option>
+            <option value="oldest" {% if sort_option == 'oldest' %}selected{% endif %}>Cũ nhất</option>
+            <option value="most_questions" {% if sort_option == 'most_questions' %}selected{% endif %}>Nhiều câu hỏi nhất</option>
+        </select>
+
+        <!-- Nút lọc -->
+        <div style="display: flex; gap: 8px;">
+            <button type="submit" class="btn btn-primary" style="padding: 10px 18px; white-space: nowrap;">Lọc bài</button>
+            {% if query or level_filter or qtype_filter or status_filter or sort_option != 'newest' %}
+                <a href="{% url 'reading:exercise_list' %}" class="btn btn-outline" style="padding: 10px 14px; text-decoration: none;">Đặt lại</a>
+            {% endif %}
+        </div>
     </div>
-
-    <select name="level" style="padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px; background: #fff; color: #334155; cursor: pointer;">
-        <option value="">Lọc: Tất cả trình độ</option>
-        <option value="BEGINNER" {% if level_filter == 'BEGINNER' %}selected{% endif %}>Cơ bản (Beginner)</option>
-        <option value="INTERMEDIATE" {% if level_filter == 'INTERMEDIATE' %}selected{% endif %}>Trung bình (Intermediate)</option>
-        <option value="ADVANCED" {% if level_filter == 'ADVANCED' %}selected{% endif %}>Nâng cao (Advanced)</option>
-    </select>
-
-    <select name="sort" style="padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px; background: #fff; color: #334155; cursor: pointer;">
-        <option value="newest" {% if sort_option == 'newest' %}selected{% endif %}>Sắp xếp: Mới nhất</option>
-        <option value="oldest" {% if sort_option == 'oldest' %}selected{% endif %}>Sắp xếp: Cũ nhất</option>
-    </select>
-
-    <button type="submit" class="btn btn-primary" style="padding: 0 20px;">Lọc bài</button>
-    
-    {% if query or level_filter or sort_option != 'newest' %}
-        <a href="{% url 'reading:exercise_list' %}" class="btn btn-outline" style="text-decoration: none;">Đặt lại</a>
-    {% endif %}
 </form>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2 style="font-size: 16px; font-weight: 600; color: #334155;">Danh sách bài luyện</h2>
-    <span style="font-size: 13px; color: var(--text-muted);">{{ total_count }} bài Reading</span>
+    <span style="font-size: 13px; color: var(--text-muted);">{{ total_count }} bài Reading phù hợp</span>
 </div>
 
-<!-- Lưới danh sách bài luyện (hinh-14.png) -->
+<!-- Lưới danh sách bài luyện -->
 {% if exercises_data %}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; margin-bottom: 36px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 24px; margin-bottom: 36px;">
         {% for item in exercises_data %}
-            <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s;">
+            <div class="exercise-card">
                 <div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                        <span style="font-size: 20px; color: var(--primary);">📖</span>
-                        <span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; 
-                                     {% if item.exercise.level == 'BEGINNER' %}background: #ecfdf5; color: #059669;
-                                     {% elif item.exercise.level == 'INTERMEDIATE' %}background: #eff6ff; color: #2563eb;
-                                     {% else %}background: #fef2f2; color: #dc2626;{% endif %}">
-                            {{ item.exercise.get_level_display }}
-                        </span>
+                    <!-- Header thẻ -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+                        <span style="font-size: 24px;">📖</span>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <span class="badge-pill" style="background: #f1f5f9; color: #475569;">
+                                ⏱️ {{ item.time_limit }} phút
+                            </span>
+                            <span class="badge-pill" 
+                                  {% if item.exercise.level == 'BEGINNER' %}style="background: #ecfdf5; color: #059669;"
+                                  {% elif item.exercise.level == 'INTERMEDIATE' %}style="background: #eff6ff; color: #2563eb;"
+                                  {% else %}style="background: #fef2f2; color: #dc2626;"{% endif %}>
+                                {{ item.exercise.get_level_display }}
+                            </span>
+                        </div>
                     </div>
 
-                    <h3 style="font-size: 17px; font-weight: 700; color: #1e293b; margin-bottom: 8px; line-height: 1.4;">
-                        {{ item.exercise.title }}
+                    <!-- Tiêu đề bài -->
+                    <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px; line-height: 1.4;">
+                        <a href="{% url 'reading:exercise_detail' item.exercise.id %}" style="text-decoration: none; color: inherit;">
+                            {{ item.exercise.title }}
+                        </a>
                     </h3>
                     
-                    <p style="font-size: 13px; color: #64748b; margin-bottom: 6px;">{{ item.exercise.topic }}</p>
-                    <p style="font-size: 13px; color: #94a3b8; margin-bottom: 16px;">
-                        {{ item.types_display|default:"Tổng hợp" }} • {{ item.question_count }} câu
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 6px;">
+                        <strong>Chủ đề:</strong> {{ item.exercise.topic }}
                     </p>
-                </div>
+                    <p style="font-size: 13px; color: #94a3b8; margin-bottom: 16px;">
+                        {{ item.types_display|default:"Tổng hợp" }} • {{ item.question_count }} câu hỏi
+                    </p>
 
-                <div style="border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 12px; color: #64748b;">
-                        {% if item.latest_attempt %}
-                            <span style="color: var(--success); font-weight: 600;">✓ Đã luyện tập:</span> {{ item.latest_attempt.correct_answers }}/{{ item.latest_attempt.total_questions }} câu đúng
+                    <!-- Trạng thái học viên -->
+                    <div style="margin-bottom: 18px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px;
+                                {% if item.user_status == 'COMPLETED' %}background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;
+                                {% elif item.user_status == 'IN_PROGRESS' %}background: #fffbeb; color: #b45309; border: 1px solid #fde68a;
+                                {% else %}background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;{% endif %}">
+                        {% if item.user_status == 'COMPLETED' %}
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span><strong>✓ Đã hoàn thành:</strong> {{ item.latest_attempt.correct_answers }}/{{ item.latest_attempt.total_questions }} câu đúng ({{ item.latest_percentage }}%)</span>
+                                <a href="{% url 'reading:attempt_result' item.latest_attempt.submission_key %}" style="color: #16a34a; font-weight: 600; text-decoration: underline; font-size: 12px;">Xem lại</a>
+                            </div>
+                        {% elif item.user_status == 'IN_PROGRESS' %}
+                            <span><strong>⏳ Đang làm dở</strong> — bạn có bài làm chưa nộp</span>
                         {% else %}
-                            <span style="color: #94a3b8;">Chưa luyện tập</span>
+                            <span>Chưa luyện tập bài này</span>
                         {% endif %}
                     </div>
-                    <a href="{% url 'reading:exercise_detail' item.exercise.id %}" class="btn btn-outline" style="color: var(--primary); border-color: #fee2e2; background: #fff5f5; font-size: 13px; padding: 8px 14px;">
-                        Luyện ngay →
-                    </a>
+                </div>
+
+                <!-- Footer hành động -->
+                <div style="border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    {% if item.user_status == 'IN_PROGRESS' %}
+                        <a href="{% url 'reading:exercise_detail' item.exercise.id %}" class="btn-resume">
+                            Tiếp tục làm bài →
+                        </a>
+                        <a href="{% url 'reading:exercise_detail' item.exercise.id %}?reset=1" class="btn btn-outline" style="font-size: 12px; padding: 7px 10px;">
+                            Làm lại từ đầu
+                        </a>
+                    {% else %}
+                        <div style="display: flex; gap: 8px;">
+                            <a href="{% url 'reading:exercise_detail' item.exercise.id %}?mode=practice{% if item.user_status == 'COMPLETED' %}&reset=1{% endif %}" class="btn-practice">
+                                Luyện tập
+                            </a>
+                            <a href="{% url 'reading:exercise_detail' item.exercise.id %}?mode=exam{% if item.user_status == 'COMPLETED' %}&reset=1{% endif %}" class="btn-exam" title="Chế độ thi thử có đồng hồ đếm ngược và tự động nộp bài khi hết giờ">
+                                Thi thử
+                            </a>
+                        </div>
+                        {% if item.latest_attempt %}
+                            <a href="{% url 'reading:attempt_result' item.latest_attempt.submission_key %}" class="btn btn-outline" style="font-size: 12px; padding: 7px 12px;">
+                                Kết quả
+                            </a>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}
@@ -92,30 +285,29 @@
     {% if page_obj.has_other_pages %}
         <div style="display: flex; justify-content: center; gap: 8px; margin-top: 24px;">
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&level={{ level_filter }}&sort={{ sort_option }}" class="btn btn-outline" style="padding: 8px 14px;">‹</a>
+                <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&level={{ level_filter }}&qtype={{ qtype_filter }}&status={{ status_filter }}&sort={{ sort_option }}" class="btn btn-outline" style="padding: 8px 14px;">‹</a>
             {% endif %}
 
             {% for num in page_obj.paginator.page_range %}
                 {% if page_obj.number == num %}
                     <span class="btn btn-primary" style="padding: 8px 14px;">{{ num }}</span>
                 {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <a href="?page={{ num }}&q={{ query }}&level={{ level_filter }}&sort={{ sort_option }}" class="btn btn-outline" style="padding: 8px 14px;">{{ num }}</a>
+                    <a href="?page={{ num }}&q={{ query }}&level={{ level_filter }}&qtype={{ qtype_filter }}&status={{ status_filter }}&sort={{ sort_option }}" class="btn btn-outline" style="padding: 8px 14px;">{{ num }}</a>
                 {% endif %}
             {% endfor %}
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&level={{ level_filter }}&sort={{ sort_option }}" class="btn btn-outline" style="padding: 8px 14px;">›</a>
+                <a href="?page={{ page_obj.next_page_number }}&q={{ query }}&level={{ level_filter }}&qtype={{ qtype_filter }}&status={{ status_filter }}&sort={{ sort_option }}" class="btn btn-outline" style="padding: 8px 14px;">›</a>
             {% endif %}
         </div>
     {% endif %}
 
 {% else %}
-    <!-- Danh sách trống (hinh-15.png) -->
     <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 60px; text-align: center; margin: 40px 0;">
         <div style="font-size: 48px; margin-bottom: 16px; color: #94a3b8;">📭</div>
-        <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Hiện chưa có bài luyện Reading phù hợp</h3>
-        <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Vui lòng thử lại với từ khóa hoặc điều kiện lọc khác.</p>
-        <a href="{% url 'reading:exercise_list' %}" class="btn btn-outline">Xem tất cả bài đọc</a>
+        <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Không tìm thấy bài luyện Reading phù hợp</h3>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Vui lòng thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm.</p>
+        <a href="{% url 'reading:exercise_list' %}" class="btn btn-primary" style="text-decoration: none;">Xem tất cả bài đọc</a>
     </div>
 {% endif %}
 
