@@ -73,43 +73,111 @@ def is_answer_correct(question_type: str, user_answer: str, correct_answers: lis
     return norm_user in norm_correct
 
 
-def calculate_ielts_band(score: int, total: int, skill: str = "READING") -> float | None:
-    """Chỉ tính IELTS band estimate cho bài full test có đủ 40 câu theo chuẩn IELTS Academic."""
-    if total != 40:
-        return None
+def calculate_ielts_band(score: int, total: int, skill: str = "READING") -> float:
+    """Tính IELTS band score chuẩn hóa từ 1.0 đến 9.0 dựa theo số câu đúng và tổng số câu.
+    - Với bài 40 câu: Áp dụng bảng quy đổi Academic chính xác.
+    - Với bài ngắn (5, 10, 13, 14, 20 câu): Quy đổi theo tỷ lệ chuẩn năng lực IELTS.
+    """
+    if not total or total <= 0:
+        return 0.0
 
-    if skill.upper() == "READING":
-        if score >= 39: return 9.0
-        elif score >= 37: return 8.5
-        elif score >= 35: return 8.0
-        elif score >= 33: return 7.5
-        elif score >= 30: return 7.0
-        elif score >= 27: return 6.5
-        elif score >= 23: return 6.0
-        elif score >= 19: return 5.5
-        elif score >= 15: return 5.0
-        elif score >= 13: return 4.5
-        elif score >= 10: return 4.0
-        elif score >= 8: return 3.5
-        elif score >= 6: return 3.0
-        elif score >= 4: return 2.5
-        else: return 2.0
-    else:  # LISTENING
-        if score >= 39: return 9.0
-        elif score >= 37: return 8.5
-        elif score >= 35: return 8.0
-        elif score >= 32: return 7.5
-        elif score >= 30: return 7.0
-        elif score >= 26: return 6.5
-        elif score >= 23: return 6.0
-        elif score >= 18: return 5.5
-        elif score >= 16: return 5.0
-        elif score >= 13: return 4.5
-        elif score >= 10: return 4.0
-        elif score >= 8: return 3.5
-        elif score >= 6: return 3.0
-        elif score >= 4: return 2.5
-        else: return 2.0
+    if total == 40:
+        if skill.upper() == "READING":
+            if score >= 39: return 9.0
+            elif score >= 37: return 8.5
+            elif score >= 35: return 8.0
+            elif score >= 33: return 7.5
+            elif score >= 30: return 7.0
+            elif score >= 27: return 6.5
+            elif score >= 23: return 6.0
+            elif score >= 19: return 5.5
+            elif score >= 15: return 5.0
+            elif score >= 13: return 4.5
+            elif score >= 10: return 4.0
+            elif score >= 8: return 3.5
+            elif score >= 6: return 3.0
+            elif score >= 4: return 2.5
+            else: return 2.0
+        else:  # LISTENING
+            if score >= 39: return 9.0
+            elif score >= 37: return 8.5
+            elif score >= 35: return 8.0
+            elif score >= 32: return 7.5
+            elif score >= 30: return 7.0
+            elif score >= 26: return 6.5
+            elif score >= 23: return 6.0
+            elif score >= 18: return 5.5
+            elif score >= 16: return 5.0
+            elif score >= 13: return 4.5
+            elif score >= 10: return 4.0
+            elif score >= 8: return 3.5
+            elif score >= 6: return 3.0
+            elif score >= 4: return 2.5
+            else: return 2.0
+
+    # Quy đổi chuẩn cho các bài luyện ngắn (tính theo tỷ lệ % câu đúng)
+    pct = (score / total) * 100
+    if pct >= 95: return 9.0
+    elif pct >= 88: return 8.5
+    elif pct >= 80: return 8.0
+    elif pct >= 73: return 7.5
+    elif pct >= 65: return 7.0
+    elif pct >= 58: return 6.5
+    elif pct >= 50: return 6.0
+    elif pct >= 42: return 5.5
+    elif pct >= 35: return 5.0
+    elif pct >= 28: return 4.5
+    elif pct >= 20: return 4.0
+    elif pct >= 15: return 3.5
+    elif pct >= 10: return 3.0
+    else: return 2.5
+
+
+def calculate_score_10(score: int, total: int) -> float:
+    """Quy đổi sang thang điểm 10."""
+    if not total or total <= 0:
+        return 0.0
+    return round((score / total) * 10, 1)
+
+
+def get_band_evaluation(band: float) -> dict:
+    """Trả về đánh giá năng lực, cấp độ CEFR và lời khuyên theo Band điểm."""
+    if band >= 8.5:
+        return {
+            "cefr": "C2",
+            "level_name": "Thông thạo xuất sắc (Expert / Mastery)",
+            "color": "#16a34a",
+            "message": "Năng lực ngôn ngữ hoàn hảo, khả năng hiểu các chi tiết phức tạp và hàm ý tinh tế."
+        }
+    elif band >= 7.0:
+        return {
+            "cefr": "C1",
+            "level_name": "Nâng cao (Advanced / Good User)",
+            "color": "#2563eb",
+            "message": "Nắm vững ngôn ngữ, xử lý tốt các cấu trúc lập luận học thuật và từ vựng chuyên sâu."
+        }
+    elif band >= 6.0:
+        return {
+            "cefr": "B2",
+            "level_name": "Khá (Competent User)",
+            "color": "#0d9488",
+            "message": "Hiểu tốt ý chính và thông tin cụ thể, cần rèn luyện thêm ở các câu hỏi bẫy và từ vựng hiếm."
+        }
+    elif band >= 5.0:
+        return {
+            "cefr": "B1",
+            "level_name": "Trung bình (Modest User)",
+            "color": "#d97706",
+            "message": "Nắm được ý tổng quát, cần củng cố thêm kỹ năng Skimming/Scanning và vốn từ vựng nền tảng."
+        }
+    else:
+        return {
+            "cefr": "A2",
+            "level_name": "Cần cải thiện (Limited User)",
+            "color": "#dc2626",
+            "message": "Nên tập trung luyện các bài cấp độ Beginner và ôn lại ngữ pháp, từ vựng cốt lõi."
+        }
+
 
 
 def grade_exercise_submission(exercise, answers_dict: dict) -> dict:

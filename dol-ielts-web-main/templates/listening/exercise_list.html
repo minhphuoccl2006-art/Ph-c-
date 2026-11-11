@@ -243,7 +243,7 @@
                                 {% else %}background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;{% endif %}">
                         {% if item.user_status == 'COMPLETED' %}
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span><strong>✓ Đã hoàn thành:</strong> {{ item.latest_attempt.correct_answers }}/{{ item.latest_attempt.total_questions }} câu đúng ({{ item.latest_percentage }}%)</span>
+                                <span><strong>✓ Đã hoàn thành:</strong> {{ item.latest_attempt.correct_answers }}/{{ item.latest_attempt.total_questions }} câu đúng • <strong style="color: #2563eb;">Band {{ item.latest_band }}</strong> ({{ item.latest_percentage }}%)</span>
                                 <a href="{% url 'listening:attempt_result' item.latest_attempt.submission_key %}" style="color: #16a34a; font-weight: 600; text-decoration: underline; font-size: 12px;">Xem lại</a>
                             </div>
                         {% elif item.user_status == 'IN_PROGRESS' %}

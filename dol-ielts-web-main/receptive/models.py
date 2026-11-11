@@ -114,6 +114,8 @@ class Attempt(models.Model):
     mode = models.CharField(max_length=20, choices=Mode.choices, default=Mode.PRACTICE)
     total_questions = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     correct_answers = models.PositiveIntegerField()
+    band_score = models.DecimalField(max_digits=3, decimal_places=1, default=0.0, help_text="Điểm IELTS Band ước tính từ 1.0 đến 9.0")
+    score_10 = models.DecimalField(max_digits=4, decimal_places=1, default=0.0, help_text="Điểm quy đổi thang điểm 10")
     time_spent_seconds = models.PositiveIntegerField(default=0, help_text="Thời gian làm bài thực tế tính bằng giây")
     started_at = models.DateTimeField()
     # Lượt Attempt chỉ được tạo khi nộp bài; không tạo ở bước bắt đầu.
@@ -179,6 +181,7 @@ class ExerciseProgress(models.Model):
     started_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     is_completed = models.BooleanField(default=False)
+    band_score = models.DecimalField(max_digits=3, decimal_places=1, default=0.0, null=True, blank=True)
     last_attempt = models.ForeignKey(Attempt, on_delete=models.SET_NULL, null=True, blank=True, related_name="progress_record")
 
     def __str__(self):

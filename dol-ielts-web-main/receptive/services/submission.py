@@ -10,7 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from receptive.models import Attempt, Answer, Exercise, ExerciseProgress
-from receptive.services.grading import grade_exercise_submission
+from receptive.services.grading import grade_exercise_submission, calculate_ielts_band, calculate_score_10
 
 
 def build_exercise_snapshot(exercise: Exercise) -> dict:
@@ -98,6 +98,9 @@ def submit_receptive_exercise(
     if total_questions < 1:
         raise ValidationError("Bài luyện chưa có câu hỏi nào được công bố để làm bài.")
 
+    band_score = calculate_ielts_band(correct_count, total_questions, skill=exercise.skill)
+    score_10 = calculate_score_10(correct_count, total_questions)
+
     # Thực hiện lưu toàn bộ dữ liệu trong giao dịch nguyên tử
     with transaction.atomic():
         attempt = Attempt.objects.create(
@@ -108,6 +111,8 @@ def submit_receptive_exercise(
             mode=mode if mode in ["PRACTICE", "EXAM"] else "PRACTICE",
             total_questions=total_questions,
             correct_answers=correct_count,
+            band_score=band_score,
+            score_10=score_10,
             time_spent_seconds=max(0, int(time_spent_seconds or 0)),
             started_at=started_at,
             submitted_at=submitted_at,
@@ -137,6 +142,7 @@ def submit_receptive_exercise(
         progress.mode = mode
         progress.answers = answers_dict
         progress.is_completed = True
+        progress.band_score = band_score
         progress.last_attempt = attempt
         progress.time_spent_seconds = max(0, int(time_spent_seconds or 0))
         progress.time_left_seconds = 0

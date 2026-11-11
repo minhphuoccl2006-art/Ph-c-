@@ -9,7 +9,7 @@ from core.decorators import hoc_vien_required
 from reading.models import ReadingExercise
 from receptive.models import Exercise, Attempt, Question, ExerciseProgress, Answer
 from receptive.services.submission import submit_receptive_exercise
-from receptive.services.grading import calculate_ielts_band
+from receptive.services.grading import calculate_ielts_band, calculate_score_10, get_band_evaluation
 
 
 @hoc_vien_required
@@ -113,10 +113,12 @@ def exercise_list(request):
         else:
             user_status = "NOT_STARTED"
 
-        # Tính tỷ lệ phần trăm đúng lần gần nhất nếu có
+        # Tính tỷ lệ phần trăm đúng và Band điểm IELTS lần gần nhất nếu có
         latest_percentage = 0
+        latest_band = 0.0
         if att and att.total_questions > 0:
             latest_percentage = round((att.correct_answers / att.total_questions) * 100)
+            latest_band = float(att.band_score) if (att.band_score and att.band_score > 0) else calculate_ielts_band(att.correct_answers, att.total_questions, skill="READING")
 
         exercises_data.append({
             "exercise": ex,
@@ -124,6 +126,7 @@ def exercise_list(request):
             "types_display": types_display,
             "latest_attempt": att,
             "latest_percentage": latest_percentage,
+            "latest_band": latest_band,
             "progress": prog,
             "user_status": user_status,
             "time_limit": ex.time_limit_minutes or 20,
@@ -418,8 +421,13 @@ def attempt_result(request, submission_key):
     # Tính tỷ lệ phần trăm đúng tổng thể
     percentage = round((correct_count / total_count * 100), 1) if total_count > 0 else 0
 
-    # Ước tính IELTS Band Score nếu là full test (40 câu)
-    ielts_band = calculate_ielts_band(correct_count, total_count, skill="READING")
+    # Tính điểm IELTS Band và Điểm thang 10
+    band_score = float(attempt.band_score) if (attempt.band_score and attempt.band_score > 0) else calculate_ielts_band(correct_count, total_count, skill="READING")
+    score_10 = float(attempt.score_10) if (attempt.score_10 and attempt.score_10 > 0) else calculate_score_10(correct_count, total_count)
+    evaluation = get_band_evaluation(band_score)
+
+    if not attempt.band_score or attempt.band_score == 0:
+        Attempt.objects.filter(id=attempt.id).update(band_score=band_score, score_10=score_10)
 
     # Định dạng thời gian làm bài
     time_spent = attempt.time_spent_seconds
@@ -445,7 +453,10 @@ def attempt_result(request, submission_key):
         "wrong_count": wrong_count,
         "unanswered_count": unanswered_count,
         "percentage": percentage,
-        "ielts_band": ielts_band,
+        "ielts_band": band_score,
+        "band_score": band_score,
+        "score_10": score_10,
+        "evaluation": evaluation,
         "time_spent_display": time_spent_display,
         "type_breakdown": type_breakdown,
         "answers_display": answers_display,

@@ -44,9 +44,9 @@ class ReceptiveGradingTests(SimpleTestCase):
         self.assertEqual(calculate_ielts_band(39, 40, "READING"), 9.0)
         self.assertEqual(calculate_ielts_band(30, 40, "READING"), 7.0)
         self.assertEqual(calculate_ielts_band(23, 40, "READING"), 6.0)
-        # Bai duoi 40 cau khong tinh band
-        self.assertIsNone(calculate_ielts_band(5, 5, "READING"))
-        self.assertIsNone(calculate_ielts_band(3, 5, "LISTENING"))
+        # Bai duoi 40 cau quy doi theo ty le chuan IELTS 9.0
+        self.assertEqual(calculate_ielts_band(5, 5, "READING"), 9.0)
+        self.assertIsNotNone(calculate_ielts_band(3, 5, "LISTENING"))
 
 
 class ReceptiveSubmissionTests(TestCase):

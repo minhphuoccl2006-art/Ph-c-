@@ -295,14 +295,18 @@
         <div class="score-summary-grid">
             <div>
                 <div class="score-badge-circle">
-                    <div class="score-number">{{ correct_count }}/{{ total_count }}</div>
-                    <div class="score-sub">{{ percentage }}% chính xác</div>
+                    <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #b91c1c; margin-bottom: 2px;">IELTS Band</div>
+                    <div class="score-number" style="font-size: 46px; line-height: 1;">{{ band_score }}</div>
+                    <div class="score-sub" style="font-size: 12px; margin-top: 4px;">{{ correct_count }}/{{ total_count }} câu đúng</div>
                 </div>
-                {% if ielts_band %}
-                    <div style="margin-top: 10px; font-weight: 700; color: #1e3a8a; font-size: 15px;">
-                        IELTS Band ước tính: <span style="font-size: 20px; color: #c91e27;">{{ ielts_band }}</span>
+                <div style="margin-top: 12px; text-align: center;">
+                    <span style="background: {{ evaluation.color }}15; color: {{ evaluation.color }}; border: 1px solid {{ evaluation.color }}40; font-size: 13px; font-weight: 700; padding: 5px 14px; border-radius: 20px; display: inline-block;">
+                        {{ evaluation.cefr }} • {{ evaluation.level_name }}
+                    </span>
+                    <div style="font-size: 13px; color: #475569; margin-top: 8px; font-weight: 600;">
+                        Thang điểm 10: <span style="color: #c91e27; font-size: 15px; font-weight: 700;">{{ score_10 }}/10</span> ({{ percentage }}%)
                     </div>
-                {% endif %}
+                </div>
             </div>
 
             <div>
@@ -340,7 +344,78 @@
                     <div class="progress-fill-wrong" style="width: {% widthratio wrong_count total_count 100 %}%;" title="Sai: {{ wrong_count }}"></div>
                     <div class="progress-fill-unanswered" style="width: {% widthratio unanswered_count total_count 100 %}%;" title="Bỏ trống: {{ unanswered_count }}"></div>
                 </div>
+
+                <!-- Đánh giá nhận xét năng lực -->
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px 16px; margin-top: 14px; font-size: 13.5px; color: #334155; line-height: 1.6;">
+                    <strong>💬 Đánh giá năng lực từ DOL IELTS:</strong> {{ evaluation.message }}
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Bảng quy đổi điểm chuẩn IELTS -->
+    <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleBandTable()">
+            <h2 style="font-size: 15.5px; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span>📈</span> Bảng quy đổi Band điểm & Tiêu chuẩn đánh giá IELTS
+            </h2>
+            <span id="band-toggle-icon" style="font-size: 13px; color: #2563eb; font-weight: 600;">▼ Xem bảng chuẩn</span>
+        </div>
+        <div id="band-table-content" style="display: none; margin-top: 16px; overflow-x: auto;">
+            <table class="history-table" style="font-size: 13px;">
+                <thead>
+                    <tr>
+                        <th>Band IELTS</th>
+                        <th>Cấp độ CEFR</th>
+                        <th>Tỷ lệ đúng</th>
+                        <th>Quy đổi đề 5 câu</th>
+                        <th>Quy đổi đề 40 câu</th>
+                        <th>Đánh giá trình độ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr {% if band_score >= 8.5 %}style="background: #ecfdf5; font-weight: 700;"{% endif %}>
+                        <td><strong style="color: #16a34a;">Band 8.5 - 9.0</strong></td>
+                        <td>C2</td>
+                        <td>90% - 100%</td>
+                        <td>5/5 câu</td>
+                        <td>37 - 40 câu</td>
+                        <td>Thông thạo xuất sắc (Expert User)</td>
+                    </tr>
+                    <tr {% if band_score >= 7.0 and band_score < 8.5 %}style="background: #eff6ff; font-weight: 700;"{% endif %}>
+                        <td><strong style="color: #2563eb;">Band 7.0 - 8.0</strong></td>
+                        <td>C1</td>
+                        <td>70% - 89%</td>
+                        <td>4/5 câu</td>
+                        <td>30 - 36 câu</td>
+                        <td>Nâng cao / Rất tốt (Very Good / Good User)</td>
+                    </tr>
+                    <tr {% if band_score >= 6.0 and band_score < 7.0 %}style="background: #f0fdfa; font-weight: 700;"{% endif %}>
+                        <td><strong style="color: #0d9488;">Band 6.0 - 6.5</strong></td>
+                        <td>B2</td>
+                        <td>50% - 69%</td>
+                        <td>3/5 câu</td>
+                        <td>23 - 29 câu</td>
+                        <td>Khá (Competent User)</td>
+                    </tr>
+                    <tr {% if band_score >= 5.0 and band_score < 6.0 %}style="background: #fffbeb; font-weight: 700;"{% endif %}>
+                        <td><strong style="color: #d97706;">Band 5.0 - 5.5</strong></td>
+                        <td>B1</td>
+                        <td>35% - 49%</td>
+                        <td>2/5 câu</td>
+                        <td>16 - 22 câu</td>
+                        <td>Trung bình (Modest User)</td>
+                    </tr>
+                    <tr {% if band_score < 5.0 %}style="background: #fef2f2; font-weight: 700;"{% endif %}>
+                        <td><strong style="color: #dc2626;">Band 3.5 - 4.5</strong></td>
+                        <td>A2</td>
+                        <td>Dưới 35%</td>
+                        <td>0 - 1/5 câu</td>
+                        <td>Dưới 16 câu</td>
+                        <td>Cần rèn luyện thêm (Limited User)</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -478,4 +553,20 @@
         </a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleBandTable() {
+        const content = document.getElementById("band-table-content");
+        const icon = document.getElementById("band-toggle-icon");
+        if (content.style.display === "none") {
+            content.style.display = "block";
+            icon.textContent = "▲ Thu gọn";
+        } else {
+            content.style.display = "none";
+            icon.textContent = "▼ Xem bảng chuẩn";
+        }
+    }
+</script>
 {% endblock %}
